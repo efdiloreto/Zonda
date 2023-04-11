@@ -1,6 +1,3 @@
-[![GitHub license](https://img.shields.io/github/license/efdiloreto/Zonda.svg)](https://github.com/efdiloreto/Zonda/blob/master/LICENSE.txt)
-[![GitHub issues](https://img.shields.io/github/issues/efdiloreto/Zonda.svg)](https://github.com/efdiloreto/Zonda/issues)
-[![Donar](https://img.shields.io/badge/donar-!-blue.svg?longCache=true&style=flat-square)](#donar)
 
 ![Alt text](zonda/recursos/imagenes/zonda.png?raw=true "Title")
 
