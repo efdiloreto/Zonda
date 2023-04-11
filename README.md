@@ -80,4 +80,4 @@ Si representas a una empresa u organización y te interesa patrocinar el proyect
 Podes escribirme a <efdiloreto@gmail.com> o contactarme por [LinkedIn](https://www.linkedin.com/in/ediloreto/).
 
 ## Copyright
-[GPL](LICENSE) © 2019 [Eduardo Di Loreto](https://github.com/efdiloreto)
+[GPL](LICENSE) © 2019-Present [Eduardo Di Loreto](https://github.com/efdiloreto)
