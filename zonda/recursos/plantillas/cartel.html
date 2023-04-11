@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% import "macros.html" as ma with context%}
+
+{% block titulo_encabezado -%}
+CÁLCULO DE PRESIONES DE VIENTO SOBRE CARTEL - CIRSOC 102 2005
+{%- endblock %}
+
+{% block datos_codigo -%}
+    <tr>
+        <td><b>Referencia:</b></td>
+        <td>Capítulo 5.13</td>
+    </tr>
+{%- endblock %}
+
+{% block datos_geometria -%}
+<h5 class="ui header"><u>CARTEL</u></h5>
+<table class="ui unstackable collapsing very compact very basic simple table">
+    <tbody>
+    <tr>
+        <td><b>Altura Inferior:</b></td>
+        <td>{{ '%.2f'|format(estructura.altura_inferior) }} m</td>
+    </tr>
+    <tr>
+        <td><b>Altura Superior:</b></td>
+        <td>{{ '%.2f'|format(estructura.altura_superior) }} m</td>
+    </tr>
+    <tr>
+        <td><b>Ancho:</b></td>
+        <td>{{ '%.2f'|format(estructura.ancho) }} m</td>
+    </tr>
+    <tr>
+        <td><b>Profundidad:</b></td>
+        <td>{{ '%.2f'|format(estructura.profundidad) }} m</td>
+    </tr>
+    <tr>
+        <td><b>Categoría:</b></td>
+        <td>{{ estructura.categoria }}</td>
+    </tr>
+    </tbody>
+</table>
+{%- endblock %}
+
+{% block datos_rafaga -%}
+<table class="ui unstackable collapsing very compact very basic simple table">
+    <tbody>
+{% if not estructura.factor_g_simplificado %}
+    <tr>
+        <td><b>Flexibilidad:</b></td>
+        <td>{{ estructura.flexibilidad|capitalize }}</td>
+    </tr>
+    <tr>
+        <td><b>Frecuencia natural:</b></td>
+        <td>{{ '%.2f'|format(estructura.frecuencia) }} hz</td>
+    </tr>
+    <tr>
+        <td><b>Relación de amortiguamiento:</b></td>
+        <td>{{ '%.2f'|format(estructura.beta) }} </td>
+    </tr>
+{% else %}
+    <tr>
+        <td>Se adopta el factor de ráfaga igual a 0.85 de acuerdo al artículo 5.8.1.</td>
+    </tr>
+{% endif %}
+    </tbody>
+</table>
+{%- endblock %}
+
+{% block resultados_geometria -%}
+<h5 class="ui header"><u>PARÁMETROS DE CÁLCULO</u></h5>
+<table class="ui unstackable collapsing very compact very basic simple table">
+    <tbody>
+    <tr>
+        <td><b>Altura neta:</b></td>
+        <td>{{ '%.2f'|format(estructura.geometria.altura_neta) }} m</td>
+    </tr>
+    <tr>
+        <td><b>Altura media:</b></td>
+        <td>{{ '%.2f'|format(estructura.geometria.altura_media) }} m</td>
+    </tr>
+    <tr>
+        <td><b>Área:</b></td>
+        <td>{{ '%.2f'|format(estructura.geometria.area) }} m<sup>2</sup></td>
+    </tr>
+    <tr>
+        <td><b>Factor de direccionalidad, K<sub>d</sub>:</b></td>
+        <td>{{ '%.2f'|format(estructura.presiones.factor_direccionalidad) }}</td>
+    </tr>
+    <tr>
+        <td><b>Disposición sobre el terreno:</b></td>
+        {% if estructura.cf.sobre_nivel_terreno() %}
+        <td>Sobre nivel de terreno</td>
+        {% else %}
+        <td>A nivel de terreno</td>
+        {% endif %}
+    </tr>
+</table>
+{%- endblock %}
+
+{% block resultados_constantes_terreno -%}
+{{ super() }}
+{{ ma.constantes_terreno(estructura.rafaga.constantes_exp_terreno) }}
+{%- endblock %}
+
+{% block resultados_rafaga -%}
+{{ super() }}
+
+{% if not estructura.factor_g_simplificado -%}
+{{ ma.tabla_rafaga(
+    estructura.rafaga,
+    estructura.flexibilidad,
+) }}
+{% else %}
+<table class="ui unstackable collapsing very compact very basic simple table">
+    <tbody>
+    <tr>
+        <td><b>Factor de ráfaga:</b></td>
+        <td>{{ '%.2f'|format(0.85) }}</td>
+    </tr>
+    </tbody>
+</table>
+{%- endif %}
+{%- endblock %}
+
+{% block k3 -%}
+{{ '%.2f'|format(estructura.topografia.parametros.k3[-1]) }}
+{%- endblock %}
+
+{% block resultados_topografia_pie -%}
+{% if estructura.topografia.topografia_considerada() -%}
+  <tfoot>
+    <tr>
+        <th colspan="7">
+        -El valor de K<sub>3</sub> es el correspondiente a la altura superior.
+        </th>
+    </tr>
+    <tr>
+        <th colspan="7">
+        -Los valores de K<sub>zt</sub> se encuentan en las tablas de presiones.
+        </th>
+    </tr>
+  </tfoot>
+{%- endif %}
+{%- endblock %}
+
+{% block presiones_sprfv -%}
+<h5 class="ui header"><u>PRESIONES - SPRFV</u></h5>
+{{ ma.presiones_cartel(
+    estructura.presiones.alturas, 
+    estructura.presiones.coeficientes_exposicion,
+    estructura.presiones.factor_topografico,
+    estructura.presiones.presiones_velocidad,
+    estructura.cf(),
+    estructura.presiones(),
+    estructura.geometria.areas_parciales,
+    estructura.presiones.fuerzas_parciales(),
+    estructura.presiones.fuerza_total(),
+) }}
+{%- endblock %}

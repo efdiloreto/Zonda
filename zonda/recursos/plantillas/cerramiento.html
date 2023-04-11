@@ -1,0 +1,64 @@
+{% macro status_icon(status) %}
+{% if status %}
+<i class="green check icon"></i>
+{% else %}
+<i class="red close icon"></i>
+{% endif %}
+{% endmacro %}
+
+<head>
+    <meta charset="utf-8">
+    <link rel='stylesheet' href="{{ SemanticCSS }}">
+    <link rel='stylesheet' href="{{ IconCSS }}">
+    <link rel='stylesheet' href="{{ CustomCSS }}">
+</head>
+<body>
+{% set es_abierto = all(edificio.cerramiento_condicion_1) %}
+<div class="ui container" >
+    <h3 class="ui center aligned header">VERIFICACIÓN DE CERRAMIENTO DE EDIFICIO</h3>
+    {% for i in range(4) %}
+    <table class="ui unstackable collapsing celled table">
+        <thead>
+            <tr>
+                <th colspan="4">
+                    Pared {{ loop.index }} recibiendo presión externa positiva
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>A<sub>0</sub> ≥ 0.8 x A<sub>g</sub></td>
+            <td>{{ '%.2f'|format(edificio.aberturas[loop.index0]) }} m<sup>2</sup> ≥ 0.8 x {{ '%.2f'|format(edificio.areas[loop.index0]) }} m<sup>2</sup></td>
+            <td>{{ status_icon(edificio.cerramiento_condicion_1[loop.index0]) }}</td>
+        </tr>
+        <tr>
+            <td>A<sub>0</sub> > 1.10 x A<sub>0i</sub></td>
+            <td>{{ '%.2f'|format(edificio.aberturas[loop.index0]) }} m<sup>2</sup> > 1.10 x {{ '%.2f'|format(edificio.a0i[loop.index0]) }} m<sup>2</sup></td>
+            <td>{{ status_icon(edificio.cerramiento_condicion_2[loop.index0]) }}</td>
+        </tr>
+        <tr>
+            <td>A<sub>0</sub> > min(0.4 m<sup>2</sup>, 0.01 x A<sub>g</sub>)</td>
+            <td>{{ '%.2f'|format(edificio.aberturas[loop.index0]) }} m<sup>2</sup> > {{ '%.2f'|format(edificio.min_areas[loop.index0]) }} m<sup>2</sup></td>
+            <td>{{ status_icon(edificio.cerramiento_condicion_3[loop.index0]) }}</td>
+        </tr>
+        <tr>
+            <td>A<sub>0i</sub> / A<sub>gi</sub> ≤ 0.2</td>
+            <td>{{ '%.2f'|format(edificio.a0i[loop.index0]) }} m<sup>2</sup> / {{ '%.2f'|format(edificio.agi[loop.index0]) }} m<sup>2</sup> ≤ 0.2</td>
+            <td>{{ status_icon(edificio.cerramiento_condicion_4[loop.index0]) }}</td>
+        </tr>
+        <tr>
+            <td colspan="4">
+                {% if es_abierto %}
+                <b>Edificio Abierto</b>
+                {% elif edificio.cerramiento_condicion_2[loop.index0] and edificio.cerramiento_condicion_3[loop.index0] and edificio.cerramiento_condicion_4[loop.index0] %}
+                <b>Edificio Parcialmente Cerrado</b>
+                {% else %}
+                <b>Edificio Cerrado</b>
+                {% endif %}
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    {% endfor %}
+</div>
+</body>

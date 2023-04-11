@@ -1,0 +1,145 @@
+{% extends "base.html"%}
+{% import "macros.html" as ma  with context %}
+
+{% block titulo_encabezado -%}
+CÁLCULO DE PRESIONES DE VIENTO SOBRE CUBIERTA AISLADA - CIRSOC 102 2005
+{%- endblock %}
+
+{% block datos_codigo -%}
+    <tr>
+        <td><b>Referencia:</b></td>
+        <td>Anexo 1</td>
+    </tr>
+{%- endblock %}
+
+{% block datos_geometria -%}
+<h5 class="ui header"><u>CUBIERTA AISLADA</u></h5>
+<table class="ui unstackable collapsing very compact very basic simple table">
+    <tbody>
+    <tr>
+        <td><b>Tipo de cubierta:</b></td>
+        <td>{{ estructura.geometria }}</td>
+    </tr>
+    <tr>
+        <td><b>Altura de alero:</b></td>
+        <td>{{ '%.2f'|format(estructura.altura_alero) }} m</td>
+    </tr>
+    <tr>
+        <td><b>Altura de cumbrera:</b></td>
+        <td>{{ '%.2f'|format(estructura.altura_cumbrera) }} m</td>
+    </tr>
+    <tr>
+        <td><b>Altura de bloqueo:</b></td>
+        <td>{{ '%.2f'|format(estructura.altura_bloqueo) }} m</td>
+    </tr>
+    <tr>
+        <td><b>Ancho:</b></td>
+        <td>{{ '%.2f'|format(estructura.ancho) }} m</td>
+    </tr>
+    <tr>
+        <td><b>Longitud:</b></td>
+        <td>{{ '%.2f'|format(estructura.longitud) }} m</td>
+    </tr>
+    {% if estructura.geometria == 'Un Agua' %}
+    <tr>
+        <td><b>Posición de bloqueo:</b></td>
+        <td>{{ '%.2f'|format(estructura.posicion_bloqueo) }} m</td>
+    </tr>
+    {% endif %}
+    <tr>
+        <td><b>Categoría:</b></td>
+        <td>{{ estructura.categoria }}</td>
+    </tr>
+    </tbody>
+</table>
+{%- endblock %}
+
+{% block datos_rafaga -%}
+<table class="ui unstackable collapsing very compact very basic simple table">
+    <tr>
+        <td>Se adopta el factor de ráfaga igual a 0.85 de acuerdo al Anexo 1 - I.1.</td>
+    </tr>
+    </tbody>
+</table>
+{%- endblock %}
+
+{% block resultados_geometria -%}
+<h5 class="ui header"><u>PARÁMETROS DE CÁLCULO</u></h5>
+<table class="ui unstackable collapsing very compact very basic simple table">
+    <tbody>
+    <tr>
+        <td><b>Ángulo de cubierta:</b></td>
+        <td>{{ '%.2f'|format(estructura.geometria.angulo) }}°</td>
+    </tr>
+    <tr>
+        <td><b>Altura media:</b></td>
+        <td>{{ '%.2f'|format(estructura.geometria.altura_media) }} m</td>
+    </tr>
+    <tr>
+        <td><b>Relación de bloqueo:</b></td>
+        <td>{{ '%.2f'|format(estructura.geometria.relacion_bloqueo) }}</td>
+    </tr>
+    <tr>
+        <td><b>Factor de direccionalidad, K<sub>d</sub>:</b></td>
+        <td>{{ '%.2f'|format(estructura.presiones.factor_direccionalidad) }}</td>
+    </tr>
+</table>
+{%- endblock %}
+
+{% block resultados_constantes_terreno -%}
+{{ super() }}
+{{ ma.constantes_terreno(estructura.rafaga.constantes_exp_terreno) }}
+{%- endblock %}
+
+{% block resultados_rafaga -%}
+{{ super() }}
+<table class="ui unstackable collapsing very compact very basic simple table">
+    <tbody>
+    <tr>
+        <td><b>Factor de ráfaga:</b></td>
+        <td>{{ '%.2f'|format(0.85) }}</td>
+    </tr>
+    </tbody>
+</table>
+{%- endblock %}
+
+{% block k3 -%}
+{{ '%.2f'|format(estructura.topografia.parametros.k3) }}
+{%- endblock %}
+
+{% block resultados_topografia_pie -%}
+{% if estructura.topografia.topografia_considerada() -%}
+  <tfoot>
+    <tr>
+        <th colspan="7">
+        -El valor de K<sub>3</sub> es el correspondiente a la altura media.
+        </th>
+    </tr>
+    <tr>
+        <th colspan="7">
+        -Los valores de K<sub>zt</sub> se encuentan en las tablas de presiones.
+        </th>
+    </tr>
+  </tfoot>
+{%- endif %}
+{%- endblock %}
+
+{% block presiones_sprfv -%}
+<h5 class="ui header"><u>PRESIONES - SPRFV</u></h5>
+{{ ma.presiones_cubierta_aislada_globales(
+    estructura.presiones.coeficientes_exposicion,
+    estructura.presiones.factor_topografico,
+    estructura.presiones.presiones_velocidad,
+    estructura.cpn()['global'],
+    estructura.presiones()['global'],
+    estructura.cpn.referencia,
+) }}
+{{ ma.presiones_cubierta_aislada_locales(
+    estructura.presiones.coeficientes_exposicion,
+    estructura.presiones.factor_topografico,
+    estructura.presiones.presiones_velocidad,
+    estructura.cpn()['local'],
+    estructura.presiones()['local'],
+    estructura.cpn.referencia,
+) }}
+{%- endblock %}

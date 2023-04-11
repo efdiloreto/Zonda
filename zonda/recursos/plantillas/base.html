@@ -1,0 +1,152 @@
+<head>
+    <meta charset="utf-8">
+    <link rel='stylesheet' href="{{ SemanticCSS }}">
+    <link rel='stylesheet' href="{{ CustomCSS }}">
+</head>
+<body>
+<div class="ui container">
+    <table class="ui unstackable celled basic very compact table-header table">
+    <thead>
+    <tr>
+        <th class="center aligned" colspan="4" contenteditable='true'>
+        {% block titulo_encabezado -%}
+        {%- endblock %}
+        </th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td class="right aligned three wide" contenteditable='true'>Proyecto:</td>
+        <td contenteditable='true'></td>
+        <td class="right aligned three wide" contenteditable='true'>Documento Nº:</td>
+        <td class="three wide" contenteditable='true'></td>
+    </tr>
+    <tr>
+        <td class="right aligned three wide" contenteditable='true'>Ubicación:</td>
+        <td contenteditable='true'></td>
+        <td class="right aligned three wide" contenteditable='true'>Rev.:</td>
+        <td class="three wide" contenteditable='true'></td>
+    </tr>
+    <tr>
+        <td class="right aligned three wide" contenteditable='true'>Proyectista:</td>
+        <td contenteditable='true'></td>
+        <td class="right aligned three wide" contenteditable='true'>Fecha:</td>
+        <td class="three wide" contenteditable='true'></td>
+    </tr>
+    <tr>
+        <td class="right aligned three wide" contenteditable='true'>Revisor:</td>
+        <td contenteditable='true'></td>
+        <td class="right aligned three wide" contenteditable='true'>Fecha Rev.:</td>
+        <td class="three wide" contenteditable='true'></td>
+    </tr>
+    </tbody>
+    </table>
+    <h4 class="ui header"><u><b>DATOS DE ENTRADA</b></u></h4>
+    <h5 class="ui header"><u>REGLAMENTO</u></h5>  
+    <table class="ui unstackable collapsing very compact very basic simple table">
+        <tbody>
+        {% block datos_codigo -%}
+        {%- endblock %}
+        </tbody>
+    </table>
+    {% block datos_geometria -%}
+    {%- endblock %}
+    <h5 class="ui header"><u>VIENTO</u></h5>
+    <table class="ui unstackable collapsing very compact very basic simple table">
+        <tbody>
+        <tr>
+            <td><b>Velocidad básica:</b></td>
+            <td>{{ '%.2f'|format(estructura.velocidad) }} m/s</td>
+        </tr>
+        <tr>
+            <td><b>Categoría de exposición:</b></td>
+            <td>{{ estructura.categoria_exp }}</td>
+        </tr>
+        </tbody>
+    </table>
+    <h5 class="ui header"><u>FACTOR DE RÁFAGA</u></h5>
+    {% block datos_rafaga -%}
+    {%- endblock %}
+    <h5 class="ui header"><u>TOPOGRAFÍA</u></h5>
+    <table class="ui unstackable collapsing very compact very basic simple table">
+        <tbody>
+    {% if estructura.considerar_topografia %}
+        <tr>
+            <td><b>Tipo de terreno:</b></td>
+            <td>{{ estructura.tipo_terreno|capitalize }}</td>
+        </tr>
+        <tr>
+            <td><b>Altura de terreno:</b></td>
+            <td>{{ '%.2f'|format(estructura.altura_terreno) }} m</td>
+        </tr>
+        <tr>
+            <td><b>Distancia a la cresta:</b></td>
+            <td>{{ '%.2f'|format(estructura.distancia_cresta) }} m</td>
+        </tr>
+        <tr>
+            <td><b>Distancia a {{ estructura.direccion }}:</b></td>
+            <td>{{ '%.2f'|format(estructura.distancia_barlovento_sotavento) }} m</td>
+        </tr>
+    {% else %}
+        <tr>
+            <td>Topografía no considerada.</td>
+        </tr>
+    {% endif %}
+        </tbody>
+    </table>
+    <h4 class="ui header"><u><b>RESULTADOS</b></u></h4>
+    {% block resultados_geometria %}
+    {% endblock %}
+    {% block resultados_constantes_terreno %}
+    <h5 class="ui header"><u>CONSTANTES DE EXPOSICIÓN DEL TERRENO</u></h5>
+    {% endblock %}
+    {% block resultados_rafaga %}
+    <h5 class="ui header"><u>FACTOR DE RÁFAGA</u></h5>
+    {% endblock %}
+    <h5 class="ui header"><u>FACTOR TOPOGRÁFICO</u></h5>
+    {% if estructura.topografia.topografia_considerada() %}
+    <table class="ui unstackable celled collapsing very compact basic center aligned table">
+    <thead>
+    <tr>
+        <th class="center aligned">K<sub>1</sub>/(H/L<sub>h</sub>)</th>
+        <th class="center aligned">γ</th>
+        <th class="center aligned">μ</th>
+        <th class="center aligned">L<sub>h</sub></th>
+        <th class="center aligned">K<sub>1</sub></th>
+        <th class="center aligned">K<sub>2</sub></th>
+        <th class="center aligned">K<sub>3</sub></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        {% for parametro in estructura.topografia.parametros[:-1] -%}
+        <td class="center aligned">{{ '%.2f'|format(parametro) }}</td>
+        {%- endfor %}
+        <td class="center aligned">
+            {% block k3 %}
+            {% endblock %}
+        </td>
+    </tr>
+    </tbody>
+    {% block resultados_topografia_pie %}
+    {% endblock %}
+    </table>
+    {% else %}
+    <table class="ui unstackable collapsing very compact very basic simple table">
+        <tbody>
+        <tr>
+            <td><b>Factor topográfico, K<sub>zt</sub>:</b></td>
+            <td>{{'%.2f'|format(1)}}</td>
+        </tr>
+    </tbody>
+    </table>
+    {% if estructura.considerar_topografia %}
+    <p>- No se considera la topografía debido a que no se cumplen todas las condiciones del artículo 5.7.1.</p>
+    {% endif %}
+    {% endif %}
+    {% block presiones_sprfv %}
+    {% endblock %}
+    {% block presiones_componentes %}
+    {% endblock %}
+</div>
+</body>

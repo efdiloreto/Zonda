@@ -1,0 +1,15 @@
+cached-property==1.5.1
+cx-Freeze==5.1.1
+entrypoints==0.3
+flake8==3.7.7
+Jinja2==2.10.1
+MarkupSafe==1.1.1
+mccabe==0.6.1
+numpy==1.16.2
+Pint==0.9
+pycodestyle==2.5.0
+pyflakes==2.1.1
+PyQt5==5.10
+PyQt5-sip==4.19.15
+rope==0.14.0
+sip==4.19.8

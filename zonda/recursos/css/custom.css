@@ -1,0 +1,29 @@
+/* html {
+    font-size: 14px;
+} 
+ */
+
+
+ .ui.table.simple tr td,th {
+     border-top: 0px !important;
+}
+
+.ui.table {
+    border-radius: 0px;
+ }
+
+.ui.table tfoot th{
+    padding: 0.3em;
+}
+
+.ui.table.table-header{
+    border: 1px solid black;
+ }
+
+.grey {
+    color: grey;
+}
+
+.centrado{
+    text-align: center;
+}

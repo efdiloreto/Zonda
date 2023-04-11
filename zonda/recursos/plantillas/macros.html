@@ -1,0 +1,480 @@
+{% set p_unidad = unidades.presion %}
+{% set f_unidad = unidades.fuerza %}
+{% set p_unidad_header = p_unidad|unidad_html %}
+{% set f_unidad_header = f_unidad|unidad_html %}
+
+{% macro constantes_terreno(constantes) -%}
+<table class="ui unstackable celled collapsing very compact basic small table">
+    <thead>
+    <tr>
+        <th class="center aligned">α</th>
+        <th class="center aligned">Z<sub>g</sub><br>(m)</th>
+        <th class="center aligned">â</th>
+        <th class="center aligned">b̂</th>
+        <th class="center aligned">ᾱ</th>
+        <th class="center aligned">b̄</th>
+        <th class="center aligned">c</th>
+        <th class="center aligned">ℓ<br>(m)</th>
+        <th class="center aligned">ε̄</th>
+        <th class="center aligned">Z<sub>min</sub><br>(m)</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        {% for parametro in constantes -%}
+        <td class="center aligned">{{ '%.2f'|format(parametro) }}</td>
+        {% endfor %}
+    </tr>
+    </tbody>
+</table>
+{%- endmacro %}
+
+{% macro tabla_rafaga(rafaga, flexibilidad) -%}
+<table class="ui unstackable celled collapsing very compact basic small table">
+    <thead>
+    <tr>
+        <th class="center aligned">z¯</th>
+        <th class="center aligned">I<sub>z¯</sub></th>
+        <th class="center aligned">L<sub>z¯</sub></th>
+        {%- if flexibilidad == 'flexible' -%}
+        <th class="center aligned">g<sub>R</sub></th>
+        <th class="center aligned">R</th>
+        {%- endif -%}
+        <th class="center aligned">Q</th>
+        <th class="center aligned">G</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        {% for parametro in rafaga.parametros -%}
+        {% if parametro is not none -%}
+        <td>{{ '%.2f'|format( parametro) }}</td>
+        {%- endif %}
+        {%- endfor %}
+        <td>{{ '%.2f'|format(rafaga.factor_q) }}</td>
+        <td><b>{{ '%.2f'|format(rafaga.factor) }}</b></td>
+    </tr>
+    </tbody>
+</table>
+{%- endmacro %}
+
+
+{% macro presiones_paredes_barlovento(alturas, kz, kzt, qz, presiones) %}
+<table class="ui unstackable orange very compact small table">
+    <thead>
+    <tr>
+        <th class="center aligned" colspan="7">PARED BARLOVENTO</th>
+    </tr>
+    <tr>
+        <th class="center aligned">Alturas<br>(m)</th>
+        <th class="center aligned">K<sub>z</sub></th>
+        <th class="center aligned">K<sub>zt</sub></th>
+        <th class="center aligned">C<sub>p</sub></th>
+        <th class="center aligned">q<sub>z</sub><br>({{ p_unidad_header|safe }})</th>
+        <th class="center aligned">p<sub>n</sub>[+GC<sub>pi</sub>]<br>({{ p_unidad_header|safe }})</th>
+        <th class="center aligned">p<sub>n</sub>[-GC<sub>pi</sub>]<br>({{ p_unidad_header|safe }})</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for k in kz %}
+    <tr>
+        <td class="center aligned">{{ '%.2f'|format(alturas[loop.index0]) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(k) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(kzt[loop.index0]) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(0.8) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(qz[loop.index0]|convertir('N / m ** 2', p_unidad)) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(presiones.pos[loop.index0]|convertir('N / m ** 2', p_unidad)) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(presiones.neg[loop.index0]|convertir('N / m ** 2', p_unidad)) }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="7">
+                <p class="grey">Referencia: Figura 3 (cont.)</p>
+            </th>
+        </tr>
+    </tfoot>
+</table>
+{% endmacro %}
+
+{% macro presiones_otras_paredes_cubierta(kh, kzth, cp, qh, presiones, titulo, encabezado_alturas, color) %}
+<table class="ui unstackable {{ color }} very compact small table">
+    <thead>
+    <tr>
+        <th class="center aligned" colspan="7">{{ titulo }}</th>
+    </tr>
+    <tr>
+        <th class="center aligned">{{ encabezado_alturas }}<br>(m)</th>
+        <th class="center aligned">K<sub>h</sub></th>
+        <th class="center aligned">K<sub>zth</sub></th>
+        <th class="center aligned">C<sub>p</sub></th>
+        <th class="center aligned">q<sub>h</sub><br>({{ p_unidad_header|safe }})</th>
+        <th class="center aligned">p<sub>n</sub>[+GC<sub>pi</sub>]<br>({{ p_unidad_header|safe }})</th>
+        <th class="center aligned">p<sub>n</sub>[-GC<sub>pi</sub>]<br>({{ p_unidad_header|safe }})</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td class="center aligned">Total</td>
+        <td class="center aligned">{{ '%.2f'|format(kh) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(kzth) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(cp) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(qh|convertir('N / m ** 2', p_unidad)) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(presiones.pos|convertir('N / m ** 2', p_unidad)) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(presiones.neg|convertir('N / m ** 2', p_unidad)) }}</td>
+    </tr>
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="7">
+                <p class="grey">Referencia: Figura 3 (cont.)</p>
+            </th>
+        </tr>
+    </tfoot>
+</table>
+{% endmacro %}
+
+{% macro presiones_normal_aleros(kh, kzth, cp, qh, presiones, titulo) %}
+<table class="ui unstackable olive very compact small table">
+    <thead>
+    <tr>
+        <th class="center aligned" colspan="6">{{ titulo }}</th>
+    </tr>
+    <tr>
+        <th class="center aligned">Distancias<br>(m)</th>
+        <th class="center aligned">K<sub>h</sub></th>
+        <th class="center aligned">K<sub>zth</sub></th>
+        <th class="center aligned">C<sub>p</sub></th>
+        <th class="center aligned">q<sub>h</sub><br>({{ p_unidad_header|safe }})</th>
+        <th class="center aligned">p<sub>n</sub><br>({{ p_unidad_header|safe }})</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td class="center aligned">Total</td>
+        <td class="center aligned">{{ '%.2f'|format(kh) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(kzth) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(cp) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(qh|convertir('N / m ** 2', p_unidad)) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(presiones|convertir('N / m ** 2', p_unidad)) }}</td>
+    </tr>
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="6">
+                <p class="grey">Referencia: Figura 3 (cont.)</p>
+            </th>
+        </tr>
+    </tfoot>
+</table>
+{% endmacro %}
+
+{% macro presiones_cubierta_paralelo(zonas, kh, kzth, cp, qh, presiones) %}
+<table class="ui unstackable teal very compact small table">
+    <thead>
+    <tr>
+        <th class="center aligned" colspan="7">CUBIERTA</th>
+    </tr>
+    <tr>
+        <th class="center aligned">Distancias<br>(m)</th>
+        <th class="center aligned">K<sub>h</sub></th>
+        <th class="center aligned">K<sub>zth</sub></th>
+        <th class="center aligned">C<sub>p</sub></th>
+        <th class="center aligned">q<sub>h</sub><br>({{ p_unidad_header|safe }})</th>
+        <th class="center aligned">p<sub>n</sub>[+GC<sub>pi</sub>]<br>({{ p_unidad_header|safe }})</th>
+        <th class="center aligned">p<sub>n</sub>[-GC<sub>pi</sub>]<br>({{ p_unidad_header|safe }})</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for distancia, cp, presion in zip(zonas, cp.values(), presiones.values()) %}
+    <tr>
+        <td class="center aligned">{{ distancia[0] }} a {{ distancia[1] }}</td>
+        <td class="center aligned">{{ '%.2f'|format(kh) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(kzth) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(cp) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(qh|convertir('N / m ** 2', p_unidad)) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(presion.pos|convertir('N / m ** 2', p_unidad)) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(presion.neg|convertir('N / m ** 2', p_unidad)) }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="7">
+                <p class="ui grey">Referencia: Figura 3 (cont.)</p>
+            </th>
+        </tr>
+    </tfoot>
+</table>
+{% endmacro %}
+
+{% macro presiones_cubierta_paralelo_aleros(zonas, kh, kzth, cp, qh, presiones) %}
+<table class="ui unstackable olive very compact small table">
+    <thead>
+    <tr>
+        <th class="center aligned" colspan="6">ALEROS</th>
+    </tr>
+    <tr>
+        <th class="center aligned">Distancias<br>(m)</th>
+        <th class="center aligned">K<sub>h</sub></th>
+        <th class="center aligned">K<sub>zth</sub></th>
+        <th class="center aligned">C<sub>p</sub></th>
+        <th class="center aligned">q<sub>h</sub><br>({{ p_unidad_header|safe }})</th>
+        <th class="center aligned">p<sub>n</sub><br>({{ p_unidad_header|safe }})</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for distancia, cp, presion in zip(zonas, cp.values(), presiones.values()) %}
+    <tr>
+        <td class="center aligned">{{ distancia[0] }} a {{ distancia[1] }}</td>
+        <td class="center aligned">{{ '%.2f'|format(kh) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(kzth) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(cp) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(qh|convertir('N / m ** 2', p_unidad)) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(presion|convertir('N / m ** 2', p_unidad)) }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="6">
+                <p class="ui grey">Referencia: Figura 3 (cont.)</p>
+            </th>
+        </tr>
+    </tfoot>
+</table>
+{% endmacro %}
+
+
+{% macro presiones_componentes(componente, kh, kzth, qh, presiones, titulo, referencia, distancia_a, color) %}
+<table class="ui unstackable {{ color }} very compact small table">
+    <thead>
+    <tr>
+        <th class="center aligned" colspan="7">
+            <h5>{{ titulo|safe }}</h5>
+        </th>
+    </tr>
+    <tr>
+        <th class="center aligned">Zona<br>(m)</th>
+        <th class="center aligned">K<sub>h</sub></th>
+        <th class="center aligned">K<sub>zth</sub></th>
+        <th class="center aligned">GC<sub>p</sub></th>
+        <th class="center aligned">q<sub>h</sub><br>({{ p_unidad_header|safe }})</th>
+        <th class="center aligned">p<sub>n</sub>[+GC<sub>pi</sub>]<br>({{ p_unidad_header|safe }})</th>
+        <th class="center aligned">p<sub>n</sub>[-GC<sub>pi</sub>]<br>({{ p_unidad_header|safe }})</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for zona, cp in componente.items() %}
+    <tr>
+        <td class="center aligned">{{ zona }}</td>
+        <td class="center aligned">{{ '%.2f'|format(kh) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(kzth) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(cp) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(qh|convertir('N / m ** 2', p_unidad)) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(presiones[zona].pos|convertir('N / m ** 2', p_unidad)) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(presiones[zona].neg|convertir('N / m ** 2', p_unidad)) }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="7">
+                <p class="grey">Referencia: {{ referencia }}</p>
+            </th>
+        </tr>
+        <tr>
+            <th colspan="7">
+                <p class="grey">Distancia "a": {{ distancia_a }} m</p>
+            </th>
+        </tr>
+    </tfoot>
+</table>
+{% endmacro %}
+
+{% macro presiones_componentes_pared_barlovento(alturas, kz, kzt, gcp, qz, presiones_componentes, areas_componentes, referencia, distancia_a) %}
+{% for componente, zonas in presiones_componentes.items() %}
+{% for zona, presion in zonas.items() %}
+<table class="ui unstackable orange very compact small table">
+    <thead>
+        <tr>
+            <th class="center aligned" colspan="7">
+            PARED BARLOVENTO - {{ componente }}
+            ({{ areas_componentes[componente] }} m<sup>2</sup>) - Zona={{ zona }}
+            </th>
+        </tr>
+        <tr>
+            <th class="center aligned">Alturas<br>(m)</th>
+            <th class="center aligned">K<sub>z</sub></th>
+            <th class="center aligned">K<sub>zt</sub></th>
+            <th class="center aligned">GC<sub>p</sub></th>
+            <th class="center aligned">q<sub>z</sub><br>({{ p_unidad_header|safe }})</th>
+            <th class="center aligned">p<sub>n</sub>[+GC<sub>pi</sub>]<br>({{ p_unidad_header|safe }})</th>
+            <th class="center aligned">p<sub>n</sub>[-GC<sub>pi</sub>]<br>({{ p_unidad_header|safe }})</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for k in kz %}
+    <tr>
+        <td class="center aligned">{{ '%.2f'|format(alturas[loop.index0]) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(k) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(kzt[loop.index0]) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(gcp[componente][zona]) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(qz[loop.index0]|convertir('N / m ** 2', p_unidad)) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(presion.pos[loop.index0]|convertir('N / m ** 2', p_unidad)) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(presion.neg[loop.index0]|convertir('N / m ** 2', p_unidad)) }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="7">
+                <p class="grey">Referencia: {{ referencia }}</p>
+            </th>
+        </tr>
+        <tr>
+            <th colspan="7">
+                <p class="grey">Distancia "a": {{ distancia_a }} m</p>
+            </th>
+        </tr>
+    </tfoot>
+</table>
+{% endfor %}
+{% endfor %}
+{% endmacro %}
+
+{% macro presiones_cartel(alturas, kz, kzt, qz, cf, presiones, areas, fuerzas, fuerza_total) %}
+<table class="ui unstackable orange very compact small table">
+    <thead>
+    <tr>
+        <th class="center aligned" colspan="8">CARTEL - PRESIONES</th>
+    </tr>
+    <tr>
+        <th class="center aligned">Alturas<br>(m)</th>
+        <th class="center aligned">K<sub>z</sub></th>
+        <th class="center aligned">K<sub>zt</sub></th>
+        <th class="center aligned">C<sub>f</sub></th>
+        <th class="center aligned">q<sub>z</sub><br>({{ p_unidad_header|safe }})</th>
+        <th class="center aligned">p<sub>n</sub><br>({{ p_unidad_header|safe }})</th>
+        <th class="center aligned">Área Parcial<br>(m<sup>2</sup>)</th>
+        <th class="center aligned">F<sub>z</sub><br>({{ f_unidad_header|safe }})</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for k in kz %}
+    <tr>
+        <td class="center aligned">{{ '%.2f'|format(alturas[loop.index0]) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(k) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(kzt[loop.index0]) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(cf) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(qz[loop.index0]|convertir('N / m ** 2', p_unidad)) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(presiones[loop.index0]|convertir('N / m ** 2', p_unidad)) }}</td>
+        {% if loop.index0 == 0 %}
+        <td class="center aligned">-</td>
+        <td class="center aligned">-</td>
+        {% else %}
+        <td class="center aligned">{{ '%.2f'|format(areas[loop.index0 - 1]) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(fuerzas[loop.index0 - 1]|convertir('N', f_unidad)) }}</td>
+        {% endif %}
+    </tr> 
+    {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="8">
+                <p class="grey">Referencia: Tabla 11</p>
+            </th>
+        </tr>
+    </tfoot>
+</table>
+<table class="ui unstackable collapsing very compact very basic simple table">
+    <tbody>
+    <tr>
+        <td><b>Fuerza total:</b></td>
+        <td>{{ '%.2f'|format(fuerza_total|convertir('N', f_unidad)) }} {{ f_unidad_header|safe }}</td>
+    </tr>
+    </tbody>
+</table>
+{% endmacro %}
+
+
+{% macro presiones_cubierta_aislada_globales(kh, kzth, qh, cpn, presiones, referencia) %}
+<table class="ui unstackable teal very compact small table">
+    <thead>
+    <tr>
+        <th class="center aligned" colspan="7">
+            <h5>PRESIONES GLOBALES</h5>
+        </th>
+    </tr>
+    <tr>
+        <th class="center aligned">Zona</th>
+        <th class="center aligned">K<sub>h</sub></th>
+        <th class="center aligned">K<sub>zth</sub></th>
+        <th class="center aligned">C<sub>pn</sub></th>
+        <th class="center aligned">q<sub>h</sub><br>({{ p_unidad_header|safe }})</th>
+        <th class="center aligned">p<br>({{ p_unidad_header|safe }})</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for tipo, valor_cpn in cpn.items() %}
+    <tr>
+        <td class="center aligned">{{ tipo|capitalize }}</td>
+        <td class="center aligned">{{ '%.2f'|format(kh) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(kzth) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(valor_cpn) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(qh|convertir('N / m ** 2', p_unidad)) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(presiones[tipo]|convertir('N / m ** 2', p_unidad)) }}</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="7">
+                <p class="grey">Referencia: {{ referencia }}</p>
+            </th>
+        </tr>
+    </tfoot>
+</table>
+{% endmacro %}
+
+{% macro presiones_cubierta_aislada_locales(kh, kzth, qh, cpn, presiones, referencia) %}
+<table class="ui unstackable teal very compact small table">
+    <thead>
+    <tr>
+        <th class="center aligned" colspan="7">
+            <h5>PRESIONES LOCALES</h5>
+        </th>
+    </tr>
+    <tr>
+        <th class="center aligned">Zona</th>
+        <th class="center aligned">K<sub>h</sub></th>
+        <th class="center aligned">K<sub>zth</sub></th>
+        <th class="center aligned">C<sub>pn</sub></th>
+        <th class="center aligned">q<sub>h</sub><br>({{ p_unidad_header|safe }})</th>
+        <th class="center aligned">p<br>({{ p_unidad_header|safe }})</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for zona, cpn_dict in cpn.items() %}
+    {% for tipo, valor_cpn in cpn_dict.items() %}
+    <tr>
+        <td class="center aligned">{{ "%s - %s"|format(zona|upper, tipo|capitalize) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(kh) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(kzth) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(valor_cpn) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(qh|convertir('N / m ** 2', p_unidad)) }}</td>
+        <td class="center aligned">{{ '%.2f'|format(presiones[zona][tipo]|convertir('N / m ** 2', p_unidad)) }}</td>
+    </tr>
+    {% endfor %}
+    {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="7">
+                <p class="grey">Referencia: {{ referencia }}</p>
+            </th>
+        </tr>
+    </tfoot>
+</table>
+{% endmacro %}
